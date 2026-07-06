@@ -1,8 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const STORAGE_KEY = "todo-react-tasks";
 
 function App() {
   const [task, setTask] = useState("");
-  const [tasks, setTasks] = useState([]);
+
+  // Load saved tasks from localStorage on first render
+  const [tasks, setTasks] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return [];
+    try {
+      const parsed = JSON.parse(saved);
+      // completedAt was stored as a string, convert it back to a Date
+      return parsed.map((t) => ({
+        ...t,
+        completedAt: t.completedAt ? new Date(t.completedAt) : null,
+      }));
+    } catch {
+      return [];
+    }
+  });
+
+  // Persist tasks to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  }, [tasks]);
 
   const addTask = () => {
     if (task.trim() === "") return;
